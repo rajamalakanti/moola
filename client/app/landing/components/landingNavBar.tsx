@@ -1,4 +1,4 @@
-import { HandCoins } from 'lucide-react'
+import Logo from '@/components/globals/logo'
 import { Button } from '../../../components/ui/button'
 import React from 'react'
 
@@ -7,12 +7,7 @@ const LandingNavBar = () => {
     <div className='border-b-[1px] border-slate-300 p-4'>
       <div className='max-w-[1280px] flex flex-row justify-between items-center mx-auto'>
       {/* logo */}
-      <div className='flex flex-row items-center'>
-        <div className="text-purple-500">
-          <HandCoins />
-        </div>
-        <h1 className="ml-1 text-2xl bg-gradient-to-r from-purple-500 to-fuchsia-500 bg-clip-text text-transparent font-semibold"> Moola </h1>
-      </div>
+      <Logo/>
 
       {/* navigation buttons */}
       <div className='flex flex-row items-center'>
