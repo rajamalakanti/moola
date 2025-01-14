@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 from decouple import config
+from django.core.management.utils import get_random_secret_key
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,16 +22,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('DJANGO_SECRET_KEY')
+SECRET_KEY = config('DJANGO_SECRET_KEY', get_random_secret_key())
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = config('DJANGO_ALLOWED_HOSTS', 'localhost').split(',')
 
 
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -38,11 +38,21 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'corsheaders',
+    'djoser',
+    'users',
 ]
 
+
+# Custom User Model Definition
+AUTH_USER_MODEL = 'users.UserAccount'
+
+# Middleware/CORS Config
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -85,6 +95,19 @@ DATABASES = {
     }
 }
 
+# Email Settings
+EMAIL_BACKEND = 'django_ses.SESBackend'
+DEFAULT_FROM_EMAIL = config('AWS_SES_FROM_EMAIL')
+AWS_SES_ACCESS_KEY_ID = config('AWS_SES_ACCESS_KEY_ID')
+AWS_SES_SECRET_ACCESS_KEY = config('AWS_SES_SECRET_ACCESS_KEY')
+AWS_SES_REGION_NAME = config('AWS_SES_REGION_NAME')
+AWS_SES_REGION_ENDPOINT = config('AWS_SES_REGION_ENDPOINT')
+AWS_SES_FROM_EMAIL = config('AWS_SES_FROM_EMAIL')
+USE_SES_V2 = True
+
+# Domain Config
+DOMAIN = config('DOMAIN')
+SITE_NAME = 'Moola'
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -117,12 +140,49 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.1/howto/static-files/
+# Static & Media files (CSS, JavaScript, Images, Videos, Audio)
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'static'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+
+# DRF Config
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'users.authentication.CustomJWTAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated'
+    ]
+}
+
+# Djoser Config
+DJOSER = {
+    'PASSWORD_RESET_CONFIRM_URL': 'password-reset/{uid}/{token}',
+    'SEND_ACTIVATION_EMAIL': True,
+    'ACTIVATION_URL': 'activate/{uid}/{token}',
+    'USER_CREATE_PASSWORD_RESET': True,
+    'PASSWORD_RESET_CONFIRM_RETYPE': True,
+    'TOKEN_MODEL': None,
+}
+
+# session cookie config
+AUTH_COOKIE = 'access'
+AUTH_COOKIE_ACCESS_MAX_AGE = 60 * 25
+AUTH_COOKIE_REFRESH_MAX_AGE = 60 * 60 * 24
+AUTH_COOKIE_SECURE = config('AUTH_COOKIE_SECURE', 'True') == 'True'
+AUTH_COOKIE_HTTP_ONLY = True
+AUTH_COOKIE_PATH = '/'
+AUTH_COOKIE_SAMESITE = 'None'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# CORS Config
+CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', 'http://localhost:3000,http://127.0.0.1:3000').split(',')
+CORS_ALLOW_CREDENTIALS = True
+
